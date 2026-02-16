@@ -1,14 +1,15 @@
-# Python
+# Python cache/compiled
 __pycache__
 *.py[cod]
 *$py.class
 *.so
-.Python
+
+# Virtual environment
 venv/
 env/
 ENV/
 
-# Database
+# Database files
 *.db
 *.db-shm
 *.db-wal
@@ -23,29 +24,18 @@ ENV/
 .git/
 .gitignore
 
-# Environment
+# Local env files
 .env
 .env.local
 
 # Batch files
 *.bat
 
-# Testing
-test_*.py
-*_test.py
-
-# Backend files (deployed separately on Koyeb)
-api/
-routers/
-*.py
-main.py
-database.py
-models.py
-schemas.py
-auth_utils.py
-Dockerfile
-docker-compose.yml
-requirements*.txt
-kafka_service.py
-event_handlers.py
-websocket_manager*.py
+# Tests (not needed on Vercel)
+tests/
+specs/
+history/
+agents/
+helm/
+kubernetes/
+consumers/
