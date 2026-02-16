@@ -12,6 +12,15 @@ export default function TodoList() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
+  // Add-task form state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [newDueDate, setNewDueDate] = useState('');
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
   const { user } = useAuth();
 
   const fetchTasks = async () => {
@@ -70,6 +79,31 @@ export default function TodoList() {
     }
   };
 
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      await taskApi.createTask({
+        title: newTitle.trim(),
+        description: newDesc.trim() || undefined,
+        priority: newPriority,
+        due_date: newDueDate || undefined,
+      });
+      setNewTitle('');
+      setNewDesc('');
+      setNewPriority('medium');
+      setNewDueDate('');
+      setShowAddForm(false);
+      await fetchTasks();
+    } catch (err: any) {
+      setAddError(err.response?.data?.detail || 'Failed to add task');
+    } finally {
+      setAdding(false);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
   }, [filter, priorityFilter]);
@@ -113,13 +147,74 @@ export default function TodoList() {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800">Your Tasks</h2>
-        <button
-          onClick={fetchTasks}
-          className="text-sm text-blue-600 hover:text-blue-800 underline"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-3 items-center">
+          <button
+            onClick={fetchTasks}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={() => { setShowAddForm(v => !v); setAddError(null); }}
+            className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          >
+            {showAddForm ? 'Cancel' : '+ Add Task'}
+          </button>
+        </div>
       </div>
+
+      {/* Inline Add Task Form */}
+      {showAddForm && (
+        <form onSubmit={handleAddTask} className="mb-5 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+          <h3 className="font-semibold text-gray-800">New Task</h3>
+          <input
+            type="text"
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            placeholder="Task title *"
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            type="text"
+            value={newDesc}
+            onChange={e => setNewDesc(e.target.value)}
+            placeholder="Description (optional)"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-xs text-gray-600 mb-1">Priority</label>
+              <select
+                value={newPriority}
+                onChange={e => setNewPriority(e.target.value as 'low' | 'medium' | 'high')}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs text-gray-600 mb-1">Due Date (optional)</label>
+              <input
+                type="date"
+                value={newDueDate}
+                onChange={e => setNewDueDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800"
+              />
+            </div>
+          </div>
+          {addError && <p className="text-sm text-red-600">{addError}</p>}
+          <button
+            type="submit"
+            disabled={adding || !newTitle.trim()}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+          >
+            {adding ? 'Adding...' : 'Add Task'}
+          </button>
+        </form>
+      )}
 
       {/* Filters */}
       <div className="mb-4 flex gap-4">

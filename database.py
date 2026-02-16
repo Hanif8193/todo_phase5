@@ -34,7 +34,7 @@ if DATABASE_URL:
                 "options": "-c timezone=utc"
             }
         )
-        print("✅ Database configured for SERVERLESS environment (NullPool)")
+        print("[OK] Database configured for SERVERLESS environment (NullPool)")
     else:
         # Production Kubernetes: Connection pooling
         engine = create_engine(
@@ -50,7 +50,7 @@ if DATABASE_URL:
             },
             echo=False                 # Set to True for SQL query logging
         )
-        print(f"✅ Database configured for PRODUCTION environment (QueuePool: size=20, max_overflow=10)")
+        print(f"[OK] Database configured for PRODUCTION environment (QueuePool: size=20, max_overflow=10)")
 else:
     # SQLite for local development
     if os.name == "nt":  # Windows
@@ -58,7 +58,7 @@ else:
     else:  # Linux/Unix
         DATABASE_URL = "sqlite:////tmp/todo.db"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-    print(f"✅ Database configured for DEVELOPMENT environment (SQLite: {DATABASE_URL})")
+    print(f"[OK] Database configured for DEVELOPMENT environment (SQLite: {DATABASE_URL})")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

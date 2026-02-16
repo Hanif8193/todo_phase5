@@ -41,10 +41,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-500">Loading...</p>
         </div>
       </div>
     );
@@ -55,93 +55,59 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                AI Todo Chatbot
-              </h1>
-              <p className="text-gray-600">
-                Manage your tasks with the help of AI
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600 mb-2">
-                Welcome, <span className="font-medium">{user?.email}</span>
-              </p>
-              <button
-                onClick={logout}
-                className="text-sm text-red-600 hover:text-red-800 underline"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mt-6 border-b border-gray-300">
+    <main className="min-h-screen bg-gray-50">
+      {/* Top navbar */}
+      <nav className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-900">Todo App</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{user?.email}</span>
             <button
-              onClick={() => setActiveTab('tasks')}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === 'tasks'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
+              onClick={logout}
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
             >
-              📋 Tasks
-            </button>
-            <button
-              onClick={() => setActiveTab('recurring')}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === 'recurring'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              🔄 Recurring
-            </button>
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === 'chat'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              💬 AI Chat
+              Sign Out
             </button>
           </div>
-        </header>
+        </div>
+      </nav>
 
-        {/* Content */}
-        <div className="grid grid-cols-1 gap-8">
-          {activeTab === 'tasks' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <TodoList key={refreshKey} />
-              <ChatInterface onTaskCreated={handleTaskCreated} />
-            </div>
-          )}
-
-          {activeTab === 'recurring' && (
-            <RecurringTasksList
-              onCreateClick={() => setShowRecurringForm(true)}
-              onEditClick={handleEditRule}
-              refreshTrigger={recurringRefreshKey}
-            />
-          )}
-
-          {activeTab === 'chat' && (
-            <div className="max-w-3xl mx-auto">
-              <ChatInterface onTaskCreated={handleTaskCreated} />
-            </div>
-          )}
+      <div className="max-w-4xl mx-auto px-6 py-6">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+          {(['tasks', 'recurring', 'chat'] as Tab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === tab
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              {tab === 'tasks' && 'Tasks'}
+              {tab === 'recurring' && 'Recurring'}
+              {tab === 'chat' && 'AI Chat'}
+            </button>
+          ))}
         </div>
 
-        <footer className="mt-8 text-center text-sm text-gray-500">
-          <p>Powered by FastAPI & Next.js 16</p>
-        </footer>
+        {/* Content */}
+        {activeTab === 'tasks' && (
+          <TodoList key={refreshKey} />
+        )}
+
+        {activeTab === 'recurring' && (
+          <RecurringTasksList
+            onCreateClick={() => setShowRecurringForm(true)}
+            onEditClick={handleEditRule}
+            refreshTrigger={recurringRefreshKey}
+          />
+        )}
+
+        {activeTab === 'chat' && (
+          <ChatInterface onTaskCreated={handleTaskCreated} />
+        )}
       </div>
 
       {/* Recurring Task Form Modal */}

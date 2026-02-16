@@ -64,20 +64,27 @@ export default function RecurringTasksList({
   };
 
   const getFrequencyText = (rule: RecurringRule) => {
-    const interval = rule.interval > 1 ? `Every ${rule.interval} ` : '';
+    const rec = rule.recurrence_rule || {};
+    const n = rec.interval || 1;
+    const interval = n > 1 ? `Every ${n} ` : '';
 
-    if (rule.frequency === 'daily') {
-      return `${interval}${rule.interval > 1 ? 'days' : 'Daily'}`;
-    } else if (rule.frequency === 'weekly') {
-      const days = rule.weekdays
-        ? rule.weekdays.split(',').map(d => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][parseInt(d)]).join(', ')
+    if (rule.recurrence_type === 'daily') {
+      return `${interval}${n > 1 ? 'days' : 'Daily'}`;
+    } else if (rule.recurrence_type === 'weekly') {
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const weekdayMap: Record<string, string> = {
+        monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
+        friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
+      };
+      const days = rec.weekdays
+        ? rec.weekdays.map(d => weekdayMap[d.toLowerCase()] || d).join(', ')
         : '';
-      return `${interval}${rule.interval > 1 ? 'weeks' : 'Weekly'}${days ? ` (${days})` : ''}`;
-    } else if (rule.frequency === 'monthly') {
-      const dayText = rule.day_of_month ? ` on day ${rule.day_of_month}` : '';
-      return `${interval}${rule.interval > 1 ? 'months' : 'Monthly'}${dayText}`;
+      return `${interval}${n > 1 ? 'weeks' : 'Weekly'}${days ? ` (${days})` : ''}`;
+    } else if (rule.recurrence_type === 'monthly') {
+      const dayText = rec.month_day ? ` on day ${rec.month_day}` : '';
+      return `${interval}${n > 1 ? 'months' : 'Monthly'}${dayText}`;
     }
-    return rule.frequency;
+    return rule.recurrence_type;
   };
 
   const getPriorityColor = (priority: string) => {
@@ -150,9 +157,6 @@ export default function RecurringTasksList({
               key={rule.id}
               className="flex items-start gap-3 p-4 bg-blue-50 rounded-md hover:bg-blue-100 transition group"
             >
-              {/* Priority indicator */}
-              <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${getPriorityColor(rule.priority)}`} />
-
               {/* Rule content */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-gray-800">{rule.title}</h3>
@@ -161,8 +165,9 @@ export default function RecurringTasksList({
                 )}
                 <div className="flex gap-4 mt-2 text-xs text-gray-500">
                   <span className="capitalize">🔄 {getFrequencyText(rule)}</span>
-                  <span>📅 Next: {new Date(rule.next_due).toLocaleDateString()}</span>
-                  <span className="capitalize">Priority: {rule.priority}</span>
+                  {rule.start_date && (
+                    <span>📅 Start: {new Date(rule.start_date).toLocaleDateString()}</span>
+                  )}
                 </div>
               </div>
 

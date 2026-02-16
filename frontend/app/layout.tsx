@@ -6,8 +6,8 @@ import { AuthProvider } from '@/contexts/AuthContext'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI Todo Chatbot',
-  description: 'An AI-powered todo chatbot application with authentication',
+  title: 'Todo App',
+  description: 'A todo app with recurring tasks and AI assistant',
 }
 
 export default function RootLayout({

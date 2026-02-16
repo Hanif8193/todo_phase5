@@ -114,7 +114,7 @@ class RecurringPatternCreate(BaseModel):
     end_date: Optional[date] = None
     max_occurrences: Optional[int] = None
     timezone: str = "UTC"
-    user_id: int
+    user_id: Optional[int] = None
 
 
 class RecurringPatternUpdate(BaseModel):

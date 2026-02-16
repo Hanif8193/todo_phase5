@@ -1,17 +1,28 @@
-from fastapi import FastAPI, Header
+from dotenv import load_dotenv
+load_dotenv('.env.local')
+
+from fastapi import FastAPI, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, tasks, recurring, websocket_router  # chat disabled - needs openai
-# from routers import chat
-from database import engine, Base
+from routers import auth, tasks, recurring, websocket_router
+from database import engine, Base, get_db
 from models import User, Task, RecurringRule, RecurringException
 from typing import Optional
-from kafka import KafkaProducer
 import json
 import re
 import asyncio
 import logging
-import event_handlers  # Initialize event system
-from kafka_service import kafka_service  # Kafka consumer service
+import event_handlers
+from sqlalchemy.orm import Session
+
+# Kafka is optional
+try:
+    from kafka import KafkaProducer
+    from kafka_service import kafka_service as kafka_service
+    KAFKA_IMPORT_OK = True
+except ImportError:
+    KafkaProducer = None
+    kafka_service = None
+    KAFKA_IMPORT_OK = False
 
 # Import Redis WebSocket manager (with fallback to in-memory mode)
 try:
@@ -41,6 +52,9 @@ kafka_available = False
 def init_kafka_producer():
     """Initialize Kafka producer if available"""
     global producer, kafka_available
+    if not KAFKA_IMPORT_OK or KafkaProducer is None:
+        logger.info("ℹ️ Kafka package not installed — skipping producer init")
+        return
     try:
         producer = KafkaProducer(
             bootstrap_servers='localhost:9092',
@@ -88,7 +102,7 @@ async def startup_event():
             logger.warning(f"⚠️ Failed to initialize Redis WebSocket manager: {e}")
 
     # Start Kafka consumer in background (optional)
-    if kafka_available:
+    if kafka_available and kafka_service is not None:
         try:
             asyncio.create_task(kafka_service.start())
             logger.info("✅ Kafka consumer service started in background")
@@ -143,8 +157,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(recurring.router)
 app.include_router(tasks.router)
-# app.include_router(chat.router)  # Disabled - needs openai package
-app.include_router(websocket_router.router)  # WebSocket for real-time updates
+app.include_router(websocket_router.router)
 
 
 # ---------------------------
@@ -155,8 +168,13 @@ def root():
     return {"status": "ok"}
 
 @app.get("/health")
-def health():
-    return {"status": "ok", "environment": "production"}
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute("SELECT 1")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
 
 @app.get("/debug/token")
 def debug_token(authorization: Optional[str] = Header(None)):
@@ -172,11 +190,9 @@ def debug_token(authorization: Optional[str] = Header(None)):
 # Kafka Event Integration
 # ---------------------------
 # Example: Patch task routes to send events
-# This assumes your tasks.router has endpoints like /tasks/create or /tasks/complete
 from fastapi import APIRouter
 from routers import tasks as tasks_router
 
-# Wrap the original create_task and complete_task functions
 original_create_task = tasks_router.create_task
 original_complete_task = tasks_router.complete_task
 
@@ -199,7 +215,5 @@ async def complete_task_with_event(task_id: int, user_id: str):
     })
     return result
 
-# Patch router functions
 tasks_router.create_task = create_task_with_event
 tasks_router.complete_task = complete_task_with_event
-

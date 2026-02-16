@@ -23,18 +23,18 @@ export default function RecurringTaskForm({ onClose, onSuccess, editRule }: Recu
 
   useEffect(() => {
     if (editRule) {
+      const rec = editRule.recurrence_rule || {};
+      const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
       setTitle(editRule.title);
       setDescription(editRule.description || '');
-      setFrequency(editRule.frequency);
-      setInterval(editRule.interval);
-      if (editRule.weekdays) {
-        setWeekdays(editRule.weekdays.split(',').map(d => parseInt(d)));
+      setFrequency(editRule.recurrence_type);
+      setInterval(rec.interval || 1);
+      if (rec.weekdays) {
+        setWeekdays(rec.weekdays.map(d => dayNames.indexOf(d.toLowerCase())).filter(i => i >= 0));
       }
-      setDayOfMonth(editRule.day_of_month || 1);
-      setPriority(editRule.priority);
-      setNextDue(editRule.next_due);
+      setDayOfMonth(rec.month_day || 1);
+      setNextDue(editRule.start_date || new Date().toISOString().split('T')[0]);
     } else {
-      // Set default next_due to today
       const today = new Date().toISOString().split('T')[0];
       setNextDue(today);
     }
@@ -54,19 +54,30 @@ export default function RecurringTaskForm({ onClose, onSuccess, editRule }: Recu
     setLoading(true);
 
     try {
+      const recurrenceRule: RecurringRuleCreate['recurrence_rule'] = { interval };
+      if (frequency === 'weekly' && weekdays.length > 0) {
+        const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        recurrenceRule.weekdays = weekdays.map(d => dayNames[d]);
+      }
+      if (frequency === 'monthly') {
+        recurrenceRule.month_day = dayOfMonth;
+      }
+
       const data: RecurringRuleCreate = {
         title,
         description: description || undefined,
-        frequency,
-        interval,
-        weekdays: frequency === 'weekly' && weekdays.length > 0 ? weekdays.join(',') : undefined,
-        day_of_month: frequency === 'monthly' ? dayOfMonth : undefined,
-        priority,
-        next_due: nextDue,
+        recurrence_type: frequency,
+        recurrence_rule: recurrenceRule,
+        start_date: nextDue,
       };
 
       if (editRule) {
-        await recurringApi.updateRule(editRule.id, data);
+        await recurringApi.updateRule(editRule.id, {
+          title: data.title,
+          description: data.description,
+          recurrence_type: data.recurrence_type,
+          recurrence_rule: data.recurrence_rule,
+        });
       } else {
         await recurringApi.createRule(data);
       }

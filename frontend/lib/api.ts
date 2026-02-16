@@ -182,38 +182,45 @@ export interface RecurringRule {
   user_id: number;
   title: string;
   description: string | null;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  interval: number;
-  weekdays: string | null;
-  day_of_month: number | null;
-  priority: 'low' | 'medium' | 'high';
-  next_due: string;
-  active: boolean;
-  created_at: string;
-  updated_at: string;
+  recurrence_type: 'daily' | 'weekly' | 'monthly';
+  recurrence_rule: {
+    interval: number;
+    weekdays?: string[];
+    month_day?: number;
+  };
+  start_date: string | null;
+  end_date: string | null;
+  max_occurrences: number | null;
+  timezone: string | null;
 }
 
 export interface RecurringRuleCreate {
   title: string;
   description?: string;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  interval?: number;
-  weekdays?: string;
-  day_of_month?: number;
-  priority?: 'low' | 'medium' | 'high';
-  next_due: string;
+  recurrence_type: 'daily' | 'weekly' | 'monthly';
+  recurrence_rule: {
+    interval: number;
+    weekdays?: string[];
+    month_day?: number;
+  };
+  start_date: string;
+  end_date?: string;
+  max_occurrences?: number;
+  timezone?: string;
 }
 
 export interface RecurringRuleUpdate {
   title?: string;
   description?: string;
-  frequency?: 'daily' | 'weekly' | 'monthly';
-  interval?: number;
-  weekdays?: string;
-  day_of_month?: number;
-  priority?: 'low' | 'medium' | 'high';
-  next_due?: string;
-  active?: boolean;
+  recurrence_type?: 'daily' | 'weekly' | 'monthly';
+  recurrence_rule?: {
+    interval?: number;
+    weekdays?: string[];
+    month_day?: number;
+  };
+  end_date?: string;
+  max_occurrences?: number;
+  timezone?: string;
 }
 
 // Recurring Tasks API

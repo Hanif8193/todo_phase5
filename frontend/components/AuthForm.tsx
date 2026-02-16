@@ -37,7 +37,7 @@ export default function AuthForm() {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            AI Todo Chatbot
+            Todo App
           </h1>
           <p className="text-gray-600">
             {isLogin ? 'Welcome back!' : 'Create your account'}
@@ -123,7 +123,7 @@ export default function AuthForm() {
 
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-500 text-center">
-            Manage your tasks with AI-powered assistance
+            Stay organized with tasks, recurring schedules, and AI assistance
           </p>
         </div>
       </div>
