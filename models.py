@@ -44,9 +44,24 @@ class RecurringRule(Base):
     weekdays = Column(String, nullable=True)  # Comma-separated: "1,3,5" for Mon,Wed,Fri
     day_of_month = Column(Integer, nullable=True)  # Day of month for monthly (1-31)
     priority = Column(String, default="medium")
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    max_occurrences = Column(Integer, nullable=True)
+    timezone = Column(String, default="UTC")
     next_due = Column(Date, nullable=False)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", backref="recurring_rules")
+
+
+class RecurringException(Base):
+    __tablename__ = "recurring_exceptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    rule_id = Column(Integer, ForeignKey("recurring_rules.id"), nullable=False)
+    exception_date = Column(Date, nullable=False)
+    action = Column(String, nullable=False)   # "skip" | "postpone"
+    new_date = Column(Date, nullable=True)    # only for postpone
+    created_at = Column(DateTime, default=datetime.utcnow)

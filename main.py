@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, tasks, recurring, websocket_router  # chat disabled - needs openai
 # from routers import chat
 from database import engine, Base
-from models import User, Task, RecurringRule
+from models import User, Task, RecurringRule, RecurringException
 from typing import Optional
 from kafka import KafkaProducer
 import json

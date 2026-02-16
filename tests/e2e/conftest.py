@@ -3,6 +3,7 @@ pytest configuration and fixtures for E2E tests
 """
 
 import pytest
+import pytest_asyncio
 import asyncio
 from httpx import AsyncClient
 
@@ -15,7 +16,7 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_client():
     """Provide an async HTTP client for testing"""
     async with AsyncClient(follow_redirects=True) as client:
@@ -25,4 +26,4 @@ async def test_client():
 @pytest.fixture
 def base_url():
     """Base URL for the API"""
-    return "http://localhost:8000"
+    return "http://localhost:8001"
