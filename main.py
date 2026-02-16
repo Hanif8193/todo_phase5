@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv('.env.local')
 
 from fastapi import FastAPI, Header, Depends
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, tasks, recurring, websocket_router
 from database import engine, Base, get_db
@@ -170,7 +171,7 @@ def root():
 @app.get("/health")
 def health(db: Session = Depends(get_db)):
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         logger.error(f"Health check failed: {e}")
